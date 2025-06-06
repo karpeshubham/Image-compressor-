@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Image Compressor</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: "Courier New", Courier, monospace;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 20px;
+    }
+
+    input[type="file"] {
+      margin: 20px 0;
+    }
+
+    canvas {
+      display: none;
+    }
+
+    button {
+      background: none;
+      border: 1px solid #fff;
+      color: #fff;
+      padding: 10px 20px;
+      margin-top: 10px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    a {
+      display: block;
+      color: #fff;
+      margin-top: 15px;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>Image Compressor</h1>
+  <input type="file" id="upload" accept="image/*" />
+  <br />
+  <button onclick="compressImage()">Compress Image</button>
+  <br />
+  <canvas id="canvas"></canvas>
+  <a id="downloadLink" style="display:none;" download="compressed-image.jpg">Download Compressed Image</a>
+
+  <script>
+    let img = new Image();
+    let canvas = document.getElementById('canvas');
+    let ctx = canvas.getContext('2d');
+    let uploadedImage;
+
+    document.getElementById('upload').addEventListener('change', function (e) {
+      let reader = new FileReader();
+      reader.onload = function (event) {
+        img.onload = function () {
+          uploadedImage = img;
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    });
+
+    function compressImage() {
+      if (!uploadedImage) return alert("Please upload an image first.");
+
+      const scaleFactor = 0.5;
+      const width = uploadedImage.width * scaleFactor;
+      const height = uploadedImage.height * scaleFactor;
+
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(uploadedImage, 0, 0, width, height);
+
+      const dataURL = canvas.toDataURL("image/jpeg", 0.6);
+      const link = document.getElementById('downloadLink');
+      link.href = dataURL;
+      link.style.display = 'block';
+    }
+  </script>
+</body>
+</html>
