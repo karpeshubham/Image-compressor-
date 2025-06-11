@@ -1,91 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
   <title>Image Compressor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
   <style>
+    * {
+      font-family: 'Lato', sans-serif;
+      box-sizing: border-box;
+    }
+
     body {
-      background-color: #000;
-      color: #fff;
-      font-family: "Courier New", Courier, monospace;
-      text-align: center;
-      padding: 20px;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: black;
+      background: linear-gradient(270deg, #ff9a9e, #fad0c4, #fbc2eb, #a18cd1, #fbc2eb, #fad0c4, #ff9a9e);
+      background-size: 1400% 1400%;
+      animation: gradientMove 20s ease infinite;
+    }
+
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
     h1 {
-      font-size: 32px;
       margin-bottom: 20px;
+      font-size: 2rem;
+      text-align: center;
     }
 
-    input[type="file"] {
-      margin: 20px 0;
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      text-align: center;
+      max-width: 90%;
     }
 
-    canvas {
-      display: none;
+    input[type="file"], input[type="range"] {
+      margin: 10px 0;
+    }
+
+    img {
+      max-width: 100%;
+      border-radius: 10px;
+      margin-top: 10px;
     }
 
     button {
-      background: none;
-      border: 1px solid #fff;
-      color: #fff;
       padding: 10px 20px;
-      margin-top: 10px;
+      background: black;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      margin-top: 15px;
       cursor: pointer;
-      font-family: inherit;
     }
 
-    a {
+    button:hover {
+      background: #333;
+    }
+
+    label {
       display: block;
-      color: #fff;
-      margin-top: 15px;
-      text-decoration: underline;
+      margin-top: 10px;
+      font-size: 1rem;
+    }
+
+    .quality-value {
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
+  <img src="https://iili.io/FK3bcx9.png" width="350" height="120" />
   <h1>Image Compressor</h1>
-  <input type="file" id="upload" accept="image/*" />
-  <br />
-  <button onclick="compressImage()">Compress Image</button>
-  <br />
-  <canvas id="canvas"></canvas>
-  <a id="downloadLink" style="display:none;" download="compressed-image.jpg">Download Compressed Image</a>
+  <div class="container">
+    <input type="file" id="imageInput" accept="image/*"><br>
+    <label for="quality">Compression Quality: <span class="quality-value" id="qualityValue">0.7</span></label>
+    <input type="range" id="quality" min="0.1" max="1" step="0.1" value="0.7">
+    <br>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <img id="preview" alt="Preview will appear here" style="display:none;">
+    <br>
+    <a id="downloadLink" style="display:none;"><button>Download Compressed Image</button></a>
+  </div>
 
   <script>
-    let img = new Image();
-    let canvas = document.getElementById('canvas');
-    let ctx = canvas.getContext('2d');
-    let uploadedImage;
+    const imageInput = document.getElementById('imageInput');
+    const qualitySlider = document.getElementById('quality');
+    const qualityValue = document.getElementById('qualityValue');
+    const canvas = document.getElementById('canvas');
+    const preview = document.getElementById('preview');
+    const downloadLink = document.getElementById('downloadLink');
 
-    document.getElementById('upload').addEventListener('change', function (e) {
-      let reader = new FileReader();
+    qualitySlider.addEventListener('input', () => {
+      qualityValue.textContent = qualitySlider.value;
+    });
+
+    imageInput.addEventListener('change', function () {
+      const file = this.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
       reader.onload = function (event) {
+        const img = new Image();
         img.onload = function () {
-          uploadedImage = img;
+          const ctx = canvas.getContext('2d');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+
+          const quality = parseFloat(qualitySlider.value);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+
+          preview.src = compressedDataUrl;
+          preview.style.display = 'block';
+
+          downloadLink.href = compressedDataUrl;
+          downloadLink.download = "compressed-image.jpg";
+          downloadLink.style.display = 'inline-block';
         };
         img.src = event.target.result;
       };
-      reader.readAsDataURL(e.target.files[0]);
+      reader.readAsDataURL(file);
     });
-
-    function compressImage() {
-      if (!uploadedImage) return alert("Please upload an image first.");
-
-      const scaleFactor = 0.5;
-      const width = uploadedImage.width * scaleFactor;
-      const height = uploadedImage.height * scaleFactor;
-
-      canvas.width = width;
-      canvas.height = height;
-      ctx.drawImage(uploadedImage, 0, 0, width, height);
-
-      const dataURL = canvas.toDataURL("image/jpeg", 0.6);
-      const link = document.getElementById('downloadLink');
-      link.href = dataURL;
-      link.style.display = 'block';
-    }
   </script>
 </body>
 </html>
